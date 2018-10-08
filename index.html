@@ -40,18 +40,6 @@
     <div id="map">
         <canvas id="windyMap" class="fill" style="z-index: 500;"></canvas>
         <script type="text/javascript " charset="UTF-8 ">
-            function icon_generator(img, w, h) {
-                return new H.map.Icon(img, {
-                    size: {
-                        w: parseInt(w)
-                        , h: parseInt(h)
-                    }
-                    , anchor: {
-                        x: parseInt(w) / 2
-                        , y: parseInt(h) / 2
-                    }
-                });
-            }
             var he_appid = 'NXqTq9BXXeEiR4yuXfjj';
             var he_appcode = '3NpseRCnS25FaujWRdthVQ';
             var platform = new H.service.Platform({
@@ -73,7 +61,7 @@
                     lat: 23.7622568
                     , lng: 121.2795922
                 }
-                , zoom: 4
+                , zoom: 6
                 , pixelRatio: pixelRatio
             , });
             var xmlHttp;
