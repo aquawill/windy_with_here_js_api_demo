@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+    <link rel="stylesheet" type="text/css" href="https://js.api.here.com/v3/3.0/mapsjs-ui.css?dp-version=1533195059" />
+    <script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-core.js"></script>
+    <script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-service.js"></script>
+    <script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-ui.js"></script>
+    <script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-mapevents.js"></script>
+    <script type="text/javascript" src="https://alerts.ncdr.nat.gov.tw/temp/StaticFiles/Immediately/CAP300250_CapInfo.js"></script>
+    <script type="text/javascript" src="https://js.api.here.com/v3/3.0/mapsjs-data.js"></script>
+    <script src="http://esri.github.io/wind-js/windy.js" type="text/javascript"></script>
+    <script src="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v5.2.0/build/ol.js"></script>
+    <link rel="stylesheet" href="https://cdn.rawgit.com/openlayers/openlayers.github.io/master/en/v5.2.0/css/ol.css">
+    <style>
+        html,
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        
+        html,
+        body,
+        #map {
+            height: 100%;
+            width: 100vw;
+        }
+        
+        #windyMap {
+            position: absolute;
+            z-index: 1;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body onresize="resize()">
+    <div id="map">
+        <canvas id="windyMap" class="fill" style="z-index: 500;"></canvas>
+        <script type="text/javascript " charset="UTF-8 ">
+            function icon_generator(img, w, h) {
+                return new H.map.Icon(img, {
+                    size: {
+                        w: parseInt(w)
+                        , h: parseInt(h)
+                    }
+                    , anchor: {
+                        x: parseInt(w) / 2
+                        , y: parseInt(h) / 2
+                    }
+                });
+            }
+            var he_appid = 'NXqTq9BXXeEiR4yuXfjj';
+            var he_appcode = '3NpseRCnS25FaujWRdthVQ';
+            var platform = new H.service.Platform({
+                app_id: he_appid
+                , app_code: he_appcode
+                , useHTTPS: true
+                , useCIT: true
+            });
+            var geocoder = platform.getGeocodingService();
+            var pixelRatio = window.devicePixelRatio || 1;
+            var ppi = pixelRatio === 1 ? 72 : 320
+            var tile_size = pixelRatio === 1 ? 256 : 512
+            var defaultLayers = platform.createDefaultLayers({
+                tileSize: tile_size
+                , ppi: ppi
+            , });
+            var map = new H.Map(document.getElementById('map'), defaultLayers.normal.mapnight, {
+                center: {
+                    lat: 23.7622568
+                    , lng: 121.2795922
+                }
+                , zoom: 4
+                , pixelRatio: pixelRatio
+            , });
+            var xmlHttp;
+
+            function httpGet(theUrl) {
+                xmlHttp = new XMLHttpRequest();
+                xmlHttp.open("GET ", theUrl, false); // false for synchronous request
+                xmlHttp.send(null);
+                return xmlHttp.responseText;
+            };
+
+            function getURL(URL) {
+                return new Promise(function (resolve, reject) {
+                    var req = new XMLHttpRequest();
+                    req.open('GET', URL, true);
+                    //req.setRequestHeader("x-requested-with ", "XMLHttpRequest ");
+                    req.onload = function () {
+                        if (req.status === 200) {
+                            resolve(req.responseText);
+                        }
+                        else {
+                            reject(new Error(req.statusText));
+                        }
+                    };
+                    req.onerror = function () {
+                        reject(new Error(req.statusText));
+                    };
+                    req.send();
+                });
+            }
+            var windy;
+            var canvas = document.getElementById('windyMap');
+
+            function refreshWindy() {
+                if (!windy) {
+                    return;
+                }
+                windy.stop();
+                var extent = {
+                    type: "extent"
+                    , xmin: map.getViewBounds().getLeft()
+                    , ymin: map.getViewBounds().getBottom()
+                    , xmax: map.getViewBounds().getRight()
+                    , ymax: map.getViewBounds().getTop()
+                    , spatialReference: {
+                        wkid: 4326
+                    }
+                    , cache: undefined
+                };
+                canvas.width = map.getViewPort().width;
+                canvas.height = map.getViewPort().height;
+                windy.start([[0, 0], [canvas.width, canvas.height]], canvas.width, canvas.height, [[extent.xmin, extent.ymin], [extent.xmax, extent.ymax]]);
+            }
+            fetch('http://esri.github.io/wind-js/gfs.json').then(function (response) {
+                return response.json();
+            }).then(function (json) {
+                console.log(json);
+                windy = new Windy({
+                    canvas: canvas
+                    , data: json
+                });
+                refreshWindy();
+            });
+            map.addEventListener('mapviewchangeend', refreshWindy);
+
+            function resize() {
+                var view_port = map.getViewPort();
+                view_port.resize();
+            }
+        </script>
+    </div>
+</body>
+
+</html>
